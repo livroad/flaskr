@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, c
 import db
 import authentication as auth
 
+
 app = Flask(__name__)
 app.secret_key = 'secr;alksjfneet_key'
 
