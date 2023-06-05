@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+
+    <h2>Login</h2>
+
+
+    {% if error_message %}
+        <p class="red" style="width: 240px">{{ error_message }}</p>
+    {% endif %}
+
+    <form method="POST" style="width: 240px;">
+        <div class="input-field">
+            <input type="text" id="username" name="username" class="validate">
+            <label for="username" style="color: #ffffff;">ユーザー名:</label>
+            <span class="helper-text" data-error="wrong" data-success="right"></span>
+        </div>
+        <div class="input-field">
+            <input type="password" id="password" name="password" class="" validate>
+            <label for="password">パスワード:</label>
+            <span class="helper-text" data-error="wrong" data-success="right"></span>
+
+        </div>
+        <button class="btn pulse" type="submit">ログイン</button>
+    </form>
+</div>
+
+{% endblock %}
