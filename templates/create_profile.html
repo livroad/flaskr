@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container">
+    <h2>Create User Profile</h2>
+
+    <form method="POST">
+        <div class="input-field">
+            <input type="text" id="name" name="name" class="validate">
+            <label for="name">Name:</label>
+            <span class="helper-text" data-error="wrong" data-success="right"></span>
+        </div>
+        <div class="input-field">
+            <input type="text" id="description" name="description" class="validate">
+            <label for="email">Description:</label>
+            <span class="helper-text" data-error="wrong" data-success="right"></span>
+        </div>
+        <div class="input-field">
+            <input type="text" id="age" name="age" class="validate">
+            <label for="age">Age:</label>
+            <span class="helper-text" data-error="wrong" data-success="right"></span>
+        </div>
+        <div class="input-field">
+            <input type="text" id="work" name="work" class="validate">
+            <label for="work">Work:</label>
+            <span class="helper-text" data-error="wrong" data-success="right"></span>
+        </div>
+        <script>
+            $(document).ready(function(){
+            $('select').formSelect();
+            });
+        </script>
+        <div class="input-field">
+            <select name="partner" id="partner">
+                <option value="1">No, i'm alone</option>
+                <option value="2">Yes, i have</option>
+            </select>
+            <label for="partner">Do you have partner?</label>
+        </div>
+        <br>
+
+        <button class="btn pulse" type="submit">登録</button>
+    </form>
+</div>
+{% endblock %}

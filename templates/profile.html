@@ -1,16 +1,15 @@
 {% extends "base.html" %}
+
+
 {% block content %}
 <div class="container">
     <h2>{{ username }}'s profile!</h2>
-
-
-
-    <div class="container">
-        <p>name:</p>
+    <a href="{{ url_for('create_profile') }}">create_profile</a>
+    <p>name:</p>
         <p>description:</p>
         <p>age:</p>
         <p>work:</p>
         <p>partner:</p>
-    </div>
+    
 </div>
 {% endblock %}

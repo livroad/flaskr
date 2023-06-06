@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous">
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <title>My SNS</title>
@@ -14,7 +17,7 @@
         <ul class="hide-on-med-and-down">
 
             {% for i in page_list %}
-                <li class="{{ is_active(i) }}"><a href="{{ url_for(i) }}">{{i}}</a></li>
+            <li class="{{ is_active(i) }}"><a href="{{ url_for(i) }}">{{i}}</a></li>
             {% endfor %}
         </ul>
     </div>
@@ -27,8 +30,10 @@
 <footer>
 </footer>
 
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script src="scrypt/scypt.js">
+</script>
 
 </body>
+
 </html>

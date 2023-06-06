@@ -1,11 +1,13 @@
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, current_app
-import db
+# from flask_sqlalchemy import SQLAlchemy
+import db   
 import authentication as auth
 
 
 app = Flask(__name__)
 app.secret_key = 'secr;alksjfneet_key'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:database.db'
 
 ##### base.htmlで使用する変数や関数はグローバルとして定義する#####
 
@@ -93,6 +95,9 @@ def profile():
         error_message = 'You are not logged in.'
         return redirect(url_for('login', error_message=error_message))
 
+@app.route('/create_profile')
+def create_profile():
+    return render_template('create_profile.html')
 
 
 @app.route('/post', methods=['GET', 'POST'])
@@ -116,11 +121,6 @@ def timeline():
         print(type(i))
 
     return render_template('timeline.html', success_message=success_message, posts=db_posts)
-
-
-
-
-
 
 
 
