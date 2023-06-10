@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+
+
+<div class="container">
+    <h2>timeline page</h2>
+
+    {% if success_message %}
+        <p>{{ success_message}} </p>
+    {% endif %}
+
+    {% for post in posts %}
+        <div>{{ post[0] | string ~ " : " ~ post[1] }}</div>
+    {% endfor %}
+</div>
+
+
+{% endblock %}
