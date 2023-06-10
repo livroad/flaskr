@@ -58,8 +58,8 @@ def add_post(content):
 def show_posts():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    select_query = 'INSERT INTO POSTS (content) VALUES (?)'
-    cursor.execute(insert_query)
+    select_query = 'SELECT * FROM POSTS'
+    cursor.execute(select_query)
     conn.commit()
     conn.close()
 

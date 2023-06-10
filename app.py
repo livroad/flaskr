@@ -43,6 +43,9 @@ def top():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     db_users = cursor.execute('SELECT * FROM users').fetchall()
+    # 以下がdb_usersの中身
+    # [(17, 'admin', 'takaki0106kondo@icloud.com', '$2b$12$tJk8SVBsquXVLvILYzO2UuMFxQoh4EUmbiUW4e1LtcTaqLAZ7nfxC'), 
+    # (18, 'takaki', 'takaki0106kondo@icloud.com', '$2b$12$QuixEWx1YoXLNnuCM9CRk.b/KoH.JdjRvCUukx0p9BCjOZYKoYUF6')]
     conn.close()
     users = []
     for user in db_users:
