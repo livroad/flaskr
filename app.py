@@ -2,11 +2,30 @@ import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, current_app
 import db   
 import authentication as auth
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Integer, String, inspect
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 
 app = Flask(__name__)
 app.secret_key = 'secr;alksjfneet_key'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:database.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+db = SQLAlchemy(app)
+engine = db.create_engine('sqlite:///database.db', echo=True)
+Base = declarative_base()
+Session = sessionmaker(engine)  
+session = Session()
+
+inspector = inspect(engine)
+
+# テーブル名を指定してスキーマ情報を取得
+table_name = 'users'
+table_schema = inspector.get_columns(table_name)
+
+# スキーマ情報を表示
+for column in table_schema:
+    print(column)
+
 
 ##### base.htmlで使用する変数や関数はグローバルとして定義する#####
 
@@ -29,9 +48,41 @@ def page_list():
     return dict(page_list=page_list)
 
 
+class User(Base):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    username = Column(String)
+    email = Column(String)
+    password = Column(String)
+    description = Column(String)
+    age = Column(String)
+    work = Column(String)
+    partner = Column(String)
+
+
+class Post(Base):
+    __tablename__ = 'posts'
+    id = Column(Integer, primary_key=True)
+    content = Column(String)
+
+Base.metadata.create_all(engine)
+
+# user_a = User(username="sqlalchemy-test", email="test@com", password="password")
+session.query(User).filter(User.username=="sqlalchemy-test").delete()
+
+
+session.commit()
+
+
+users = session.query(User).all()
+for i in users:
+    print(i.username)
+
+
+
 ##### db作成 #####
-db.create_users_table()
-db.create_posts_table()
+# db.create_users_table()
+# db.create_posts_table()
 
 
 ##### top #####

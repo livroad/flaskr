@@ -1,10 +1,13 @@
 import sqlite3
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.declarative import declarative_base
 
 
 def create_users_table():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect()
     cursor = conn.cursor()
     # ユーザーテーブルが存在しない場合は作成する
+    
     create_table_query = '''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
