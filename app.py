@@ -1,6 +1,6 @@
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, current_app
-import db   
+import db
 import authentication as auth
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, inspect
@@ -11,10 +11,10 @@ app = Flask(__name__)
 app.secret_key = 'secr;alksjfneet_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db = SQLAlchemy(app)
-engine = db.create_engine('sqlite:///database.db', echo=True)
+engine = db.create_engine('sqlite:///database.db')
 Base = declarative_base()
-Session = sessionmaker(engine)  
-session = Session()
+Session = sessionmaker(engine)
+db_session = Session()
 
 inspector = inspect(engine)
 
@@ -22,13 +22,7 @@ inspector = inspect(engine)
 table_name = 'users'
 table_schema = inspector.get_columns(table_name)
 
-# スキーマ情報を表示
-for column in table_schema:
-    print(column)
-
-
 ##### base.htmlで使用する変数や関数はグローバルとして定義する#####
-
 # 「is_acrive」関数をグローバルに定義
 @app.context_processor
 def inject_is_active():
@@ -40,7 +34,7 @@ def inject_is_active():
 @app.context_processor
 def page_list():
     before_login_list = ['top', 'register', 'login']
-    after_login_list = ['top', 'profile','timeline','post', 'logout']
+    after_login_list = ['top', 'profile', 'timeline', 'post', 'logout']
     if 'username' in session:
         page_list = after_login_list
     else:
@@ -59,37 +53,35 @@ class User(Base):
     work = Column(String)
     partner = Column(String)
 
+    @classmethod
+    def authenticate_user(cls, session, username, password):
+        user = session.query(cls).filter(cls.username == username).first()
+        if user and auth.verify_password(password, user.password):
+            return True
+        else:
+            return False
+
+
 
 class Post(Base):
     __tablename__ = 'posts'
     id = Column(Integer, primary_key=True)
     content = Column(String)
 
+
 Base.metadata.create_all(engine)
 
-# user_a = User(username="sqlalchemy-test", email="test@com", password="password")
-session.query(User).filter(User.username=="sqlalchemy-test").delete()
 
 
-session.commit()
-
-
-users = session.query(User).all()
+users = db_session.query(User).all()
 for i in users:
     print(i.username)
-
-
-
-##### db作成 #####
-# db.create_users_table()
-# db.create_posts_table()
 
 
 ##### top #####
 @app.route('/')
 def top():
-    # db.delete_all_users()
-    users = [i[0] for i in db.show_users()]
+    users = db_session.query(User).all()
     return render_template('top.html', users=users)
 
 
@@ -102,10 +94,11 @@ def register():
         password = request.form['password']
         hashed_password = auth.hash_password(password)
 
-        db.add_user(username, email, hashed_password)
+        new_user = User(username=username, email=email, password=hashed_password)
+        db_session.add(new_user)
+        db_session.commit()
 
         return render_template('top.html', success_message='Success!! Thank you for registration!')
-
     return render_template('register.html')
 
 ##### login #####
@@ -115,9 +108,8 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        if auth.authenticate_user(username, password):
+        if User.authenticate_user(db_session, username, password):
             session['username'] = username
-            print(session)
             return redirect(url_for('profile'))
         else:
             error_message = 'Invalid username or password'
@@ -129,35 +121,41 @@ def login():
         else:
             return render_template('login.html')
 
-
+##### profile #####
 @app.route('/profile')
 def profile():
     if 'username' in session:
-        return render_template('profile.html', username = session['username'])
+        return render_template('profile.html', username=session['username'])
     else:
         error_message = 'You are not logged in.'
         return redirect(url_for('login', error_message=error_message))
 
+##### create_profile #####
 @app.route('/create_profile')
 def create_profile():
     return render_template('create_profile.html')
 
-
+##### post #####
 @app.route('/post', methods=['GET', 'POST'])
 def post():
     if request.method == 'POST':
         content = request.form['content']
-        db.add_post(content)
+        new_content = Post(content=content)
+        db_session.add(new_content)
+        db_session.commit()
         success_message = 'Posted Sccessfully'
         return redirect(url_for('timeline', success_message=success_message))
     else:
         return render_template('post.html')
 
+##### timeline #####
 @app.route('/timeline')
 def timeline():
     success_message = request.args.get('success_message')
-    posts = db.show_posts()
+    posts = db_session.query(Post.content).all()
     return render_template('timeline.html', success_message=success_message, posts=posts)
+    
+
 
 ##### ログアウト #####
 @app.route('/logout')
