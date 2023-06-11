@@ -3,19 +3,27 @@
 
 
 <div class="container">
-    <h1>{{ username }} Welcome to My SNS</h1>
+    <h1>{{ user }} Welcome to My SNS</h1>
     <p>This is a sample SNS.</p>
     <p>This is a top page</p>
 
     {% if success_message %}
         <p>{{ success_message }}</p>
     {% endif %}
-    <div>
-        <a href="{{ url_for('register')}}" class="btn pulse">Register</a>
-    </div>
-    <div>
-        <a href="{{ url_for('login')}}" class="btn pulse">Login</a>
-    </div>
+
+
+
+    {% if user is not defined %}
+        <div>
+            <a href="{{ url_for('register')}}" class="btn pulse">Register</a>
+        </div>
+        <div>
+            <a href="{{ url_for('login')}}" class="btn pulse">Login</a>
+        </div>
+    {% endif %}
+
+
+
     <div class="be_child">
         {% for i in range(28) %}
             <p class="waves-effect waves-light btn-large"></p>

@@ -82,7 +82,11 @@ for i in users:
 @app.route('/')
 def top():
     users = db_session.query(User).all()
-    return render_template('top.html', users=users)
+    if 'username' in session:
+        user = session.get('username')
+        return render_template('top.html', user=user, users=users)
+    else:
+        return render_template('top.html', users=users)
 
 
 ##### register #####
@@ -125,15 +129,33 @@ def login():
 @app.route('/profile')
 def profile():
     if 'username' in session:
-        return render_template('profile.html', username=session['username'])
+        username = session.get('username')
+        user = db_session.query(User).filter(User.username == username).first()
+        return render_template('profile.html', username=session['username'],user=user)
     else:
         error_message = 'You are not logged in.'
         return redirect(url_for('login', error_message=error_message))
 
 ##### create_profile #####
-@app.route('/create_profile')
+@app.route('/create_profile', methods=['GET', 'POST'])
 def create_profile():
-    return render_template('create_profile.html')
+    if request.method=='GET':
+        return render_template('create_profile.html')
+    else:
+        description = request.form['description']
+        age = request.form['age']
+        work = request.form['work']
+        partner = request.form['partner']
+        username = session.get('username')
+        updated_user = db_session.query(User).filter(User.username == username).first()
+        updated_user.description = description
+        updated_user.age = age
+        updated_user.work = work
+        updated_user.partner = partner
+        db_session.commit()
+        return redirect(url_for('profile',user=updated_user))
+
+
 
 ##### post #####
 @app.route('/post', methods=['GET', 'POST'])

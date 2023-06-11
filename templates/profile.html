@@ -5,11 +5,21 @@
 <div class="container">
     <h2>{{ username }}'s profile!</h2>
     <a href="{{ url_for('create_profile') }}">create_profile</a>
-    <p>username:</p>
-    <p>description:</p>
-    <p>age:</p>
-    <p>work:</p>
-    <p>partner:</p>
+
+
+    {% if user %}
+        <p>username:{{ user.username }}</p>
+        <p>description:{{ user.description }}</p>
+        <p>age:{{ user.age }}</p>
+        <p>work:{{ user.work }}</p>
+        <p>partner:{{ user.partner }}</p>
+    {% else %}
+        <p>username:{{ username }}</p>
+        <p>description:{{ description }}</p>
+        <p>age:{{ age }}</p>
+        <p>work:{{ work }}</p>
+        <p>partner:{{ partner }}</p>
+    {% endif %}
 
 </div>
 {% endblock %}
