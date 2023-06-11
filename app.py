@@ -1,6 +1,5 @@
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, current_app
-# from flask_sqlalchemy import SQLAlchemy
 import db   
 import authentication as auth
 
@@ -39,17 +38,7 @@ db.create_posts_table()
 @app.route('/')
 def top():
     # db.delete_all_users()
-    current_app.logger.info(print(db.print_all_users()))
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    db_users = cursor.execute('SELECT * FROM users').fetchall()
-    # 以下がdb_usersの中身
-    # [(17, 'admin', 'takaki0106kondo@icloud.com', '$2b$12$tJk8SVBsquXVLvILYzO2UuMFxQoh4EUmbiUW4e1LtcTaqLAZ7nfxC'), 
-    # (18, 'takaki', 'takaki0106kondo@icloud.com', '$2b$12$QuixEWx1YoXLNnuCM9CRk.b/KoH.JdjRvCUukx0p9BCjOZYKoYUF6')]
-    conn.close()
-    users = []
-    for user in db_users:
-        users.append(user[1])
+    users = [i[0] for i in db.show_users()]
     return render_template('top.html', users=users)
 
 
@@ -116,16 +105,8 @@ def post():
 @app.route('/timeline')
 def timeline():
     success_message = request.args.get('success_message')
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    db_posts = cursor.execute('SELECT * FROM posts').fetchall()
-    # posts = [i for i in db_posts]
-    for i in db_posts:
-        print(type(i))
-
-    return render_template('timeline.html', success_message=success_message, posts=db_posts)
-
-
+    posts = db.show_posts()
+    return render_template('timeline.html', success_message=success_message, posts=posts)
 
 ##### ログアウト #####
 @app.route('/logout')
@@ -133,8 +114,6 @@ def logout():
     # ログアウト処理: セッションからユーザー名を削除
     session.pop('username', None)
     return redirect('/')
-
-
 
 
 if __name__ == '__main__':

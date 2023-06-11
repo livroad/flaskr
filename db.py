@@ -31,7 +31,12 @@ def add_user(username, email, password):
     conn.commit()
     conn.close()
 
-
+def show_users():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    users = cursor.execute('SELECT username FROM users').fetchall()
+    conn.close()
+    return users
 
 def create_posts_table():
     conn = sqlite3.connect('database.db')
@@ -58,10 +63,9 @@ def add_post(content):
 def show_posts():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    select_query = 'SELECT * FROM POSTS'
-    cursor.execute(select_query)
-    conn.commit()
+    posts = cursor.execute('SELECT * FROM POSTS').fetchall()
     conn.close()
+    return posts
 
 
 def delete_all_users():
