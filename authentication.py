@@ -18,9 +18,8 @@ def authenticate_user(username, password):
     query = "SELECT * FROM users WHERE username=?"
     cursor.execute(query, (username,))
     user = cursor.fetchone()
+    conn.close()
     if user and verify_password(password, user[3]):
         return True
     else:
         return False
-
-    conn.close()

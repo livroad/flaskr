@@ -5,11 +5,11 @@
 <div class="container">
     <h2>{{ username }}'s profile!</h2>
     <a href="{{ url_for('create_profile') }}">create_profile</a>
-    <p>name:</p>
-        <p>description:</p>
-        <p>age:</p>
-        <p>work:</p>
-        <p>partner:</p>
-    
+    <p>name:{{ user[1] }}</p>
+    <p>description:{{ user[4] }}</p>
+    <p>age:{{ user[5] }}</p>
+    <p>work:{{ user[6] }}</p>
+    <p>partner:{{ user[7] }}</p>
+
 </div>
 {% endblock %}

@@ -39,17 +39,7 @@ db.create_posts_table()
 @app.route('/')
 def top():
     # db.delete_all_users()
-    current_app.logger.info(print(db.print_all_users()))
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-    db_users = cursor.execute('SELECT * FROM users').fetchall()
-    # 以下がdb_usersの中身
-    # [(17, 'admin', 'takaki0106kondo@icloud.com', '$2b$12$tJk8SVBsquXVLvILYzO2UuMFxQoh4EUmbiUW4e1LtcTaqLAZ7nfxC'), 
-    # (18, 'takaki', 'takaki0106kondo@icloud.com', '$2b$12$QuixEWx1YoXLNnuCM9CRk.b/KoH.JdjRvCUukx0p9BCjOZYKoYUF6')]
-    conn.close()
-    users = []
-    for user in db_users:
-        users.append(user[1])
+    users = db.show_users()
     return render_template('top.html', users=users)
 
 
@@ -93,14 +83,23 @@ def login():
 @app.route('/profile')
 def profile():
     if 'username' in session:
-        return render_template('profile.html', username = session['username'])
+        user = db.show_user_profile(session['username'])
+        return render_template('profile.html', username = session['username'], user = user)
     else:
         error_message = 'You are not logged in.'
         return redirect(url_for('login', error_message=error_message))
 
-@app.route('/create_profile')
+@app.route('/create_profile', methods=['GET', 'POST'])
 def create_profile():
-    return render_template('create_profile.html')
+    if request.method == 'GET':
+        return render_template('create_profile.html')
+    else:
+        description = request.form['description']
+        age = request.form['age']
+        work = request.form['work']
+        partner = request.form['partner']
+        db.update_user(description, age, work, partner)
+        return redirect(url_for('profile'))
 
 
 @app.route('/post', methods=['GET', 'POST'])
@@ -119,6 +118,7 @@ def timeline():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     db_posts = cursor.execute('SELECT * FROM posts').fetchall()
+    conn.close()
     # posts = [i for i in db_posts]
     for i in db_posts:
         print(type(i))

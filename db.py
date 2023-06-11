@@ -1,5 +1,8 @@
 import sqlite3
+from app import session
 
+
+##### "users" table #####
 
 def create_users_table():
     conn = sqlite3.connect('database.db')
@@ -10,7 +13,11 @@ def create_users_table():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
             email TEXT NOT NULL,
-            password TEXT NOT NULL
+            password TEXT NOT NULL,
+            description TEXT,
+            age TEXT,
+            work TEXT,
+            partner TEXT
         )
     '''
     cursor.execute(create_table_query)
@@ -31,12 +38,47 @@ def add_user(username, email, password):
     conn.commit()
     conn.close()
 
+def update_user(description, age, work, partner):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    username = session.get('username')
+    query = "UPDATE users SET description = ?, age = ?, work = ?, partner = ? WHERE username = ?"
+    result = cursor.execute(query, (description, age, work, partner, username))
+    conn.commit()
+    conn.close()
+    print(result)
+
+
+def show_users():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    db_users = cursor.execute('SELECT * FROM users').fetchall()
+    users_name = [user for user in db_users]
+    conn.close()
+    return users_name
+
+def show_user_profile(username):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    user = cursor.execute('SELECT * FROM users WHERE username = ?',(username, )).fetchone()
+    return user
+
+
+def delete_all_users():
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM users')
+    conn.commit()
+    conn.close()
+
+
+
+##### "posts" table #####
 
 
 def create_posts_table():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    # cursor.execute('CREATE TABLE IF NOT EXISTS posts (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT)')
     create_table_query = '''
         CREATE TABLE IF NOT EXISTS posts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,23 +106,5 @@ def show_posts():
     conn.close()
 
 
-def delete_all_users():
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
 
-    cursor.execute('DELETE FROM users')
 
-    conn.commit()
-    conn.close()
-
-def print_all_users():
-    conn = sqlite3.connect('database.db')
-    cursor = conn.cursor()
-
-    users = cursor.execute('SELECT * FROM users')
-    users_name = []
-    for i in users:
-        users_name.append(i[1])
-    conn.commit()
-    conn.close()
-    return users_name
