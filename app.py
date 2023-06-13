@@ -3,8 +3,10 @@ from flask import Flask, render_template, request, redirect, url_for, session, c
 import db
 import authentication as auth
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, inspect
+from sqlalchemy import Column, Integer, String, inspect, DateTime, func, ForeignKey
 from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import relationship
+from flask_migrate import Migrate
 
 
 app = Flask(__name__)
@@ -15,13 +17,14 @@ engine = db.create_engine('sqlite:///database.db')
 Base = declarative_base()
 Session = sessionmaker(engine)
 db_session = Session()
+migrate = Migrate(app, db)
 
 inspector = inspect(engine)
 
 # テーブル名を指定してスキーマ情報を取得
-table_name = 'users'
-table_schema = inspector.get_columns(table_name)
-
+# table_name = 'posts'
+# table_schema = inspector.get_columns(table_name)
+# print(table_schema)
 ##### base.htmlで使用する変数や関数はグローバルとして定義する#####
 # 「is_acrive」関数をグローバルに定義
 @app.context_processor
@@ -61,12 +64,14 @@ class User(Base):
         else:
             return False
 
-
-
 class Post(Base):
     __tablename__ = 'posts'
     id = Column(Integer, primary_key=True)
     content = Column(String)
+    created_at = Column(DateTime, default=func.now())
+    user_id = Column(Integer, ForeignKey('users.id'))
+    user = relationship('User')
+
 
 
 Base.metadata.create_all(engine)
@@ -174,7 +179,11 @@ def post():
 @app.route('/timeline')
 def timeline():
     success_message = request.args.get('success_message')
-    posts = db_session.query(Post.content).all()
+    posts = db_session.query(Post).all()
+    print(posts)
+    # print(posts.content, posts.user_id)
+    for post in posts:
+        print(post.content)
     return render_template('timeline.html', success_message=success_message, posts=posts)
     
 

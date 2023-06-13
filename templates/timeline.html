@@ -10,9 +10,9 @@
     {% endif %}
 
     {% for post in posts %}
-        <div>{{ post[0] | string ~ " : " ~ post[1] }}</div>
+        <div>{{ post.created_at }}</div>
+        <div>{{ post.content }}</div>
     {% endfor %}
 </div>
-
 
 {% endblock %}
