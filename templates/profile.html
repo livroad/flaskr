@@ -3,9 +3,17 @@
 
 {% block content %}
 <div class="container">
-    <h2>{{ username }}'s profile!</h2>
-    <a href="{{ url_for('create_profile') }}">create_profile</a>
+    <h2 class="page_title">{{ username }}'s profile!</h2>
 
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p class="success_message">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <a class="create_profile_link" href="{{ url_for('create_profile') }}">create_profile</a>
 
     {% if user %}
         <p>Username : {{ user.username }}</p>

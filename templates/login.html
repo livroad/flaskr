@@ -2,12 +2,15 @@
 {% block content %}
 <div class="container">
 
-    <h2>Login</h2>
+    <h2 class="page_title">Login</h2>
 
-
-    {% if error_message %}
-        <p class="red" style="width: 240px">{{ error_message }}</p>
-    {% endif %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p class="error_message">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <form method="POST" style="width: 240px;">
         <div class="input-field">

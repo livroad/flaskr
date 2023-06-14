@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, session, current_app
+from flask import Flask, render_template, request, redirect, url_for, session, current_app, flash
 import db
 import authentication as auth
 from flask_sqlalchemy import SQLAlchemy
@@ -26,6 +26,8 @@ inspector = inspect(engine)
 # print(table_schema)
 ##### base.htmlで使用する変数や関数はグローバルとして定義する#####
 # 「is_acrive」関数をグローバルに定義
+
+
 @app.context_processor
 def inject_is_active():
     def is_active(page):
@@ -33,6 +35,8 @@ def inject_is_active():
     return dict(is_active=is_active)
 
 # 「page_list」変数をグローバルに定義
+
+
 @app.context_processor
 def page_list():
     before_login_list = ['top', 'register', 'login']
@@ -63,6 +67,7 @@ class User(Base):
         else:
             return False
 
+
 class Post(Base):
     __tablename__ = 'posts'
     id = Column(Integer, primary_key=True)
@@ -73,7 +78,6 @@ class Post(Base):
 
 
 Base.metadata.create_all(engine)
-
 
 
 ##### top #####
@@ -96,14 +100,17 @@ def register():
         password = request.form['password']
         hashed_password = auth.hash_password(password)
 
-        new_user = User(username=username, email=email, password=hashed_password)
+        new_user = User(username=username, email=email,
+                        password=hashed_password)
         db_session.add(new_user)
         db_session.commit()
-
-        return render_template('top.html', success_message='Success!! Thank you for registration!')
+        flash('Success!! Thank you for registration!', 'success')
+        return render_template('top.html')
     return render_template('register.html')
 
 ##### login #####
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -112,32 +119,39 @@ def login():
 
         if User.authenticate_user(db_session, username, password):
             session['username'] = username
+            flash('Logged in Successfully!', 'success')
             return redirect(url_for('profile'))
         else:
-            error_message = 'Invalid username or password'
-            return render_template('login.html', error_message=error_message)
+            flash('Invalid username or password', 'error')
+            return render_template('login.html')
     else:
         error_message = request.args.get('error_message')
         if error_message:
-            return render_template('login.html', error_message=error_message)
+            flash(error_message, 'error')
+            return render_template('login.html')
         else:
             return render_template('login.html')
 
 ##### profile #####
+
+
 @app.route('/profile')
 def profile():
     if 'username' in session:
+        success_message = request.args.get('success_message')
         username = session.get('username')
         user = db_session.query(User).filter(User.username == username).first()
-        return render_template('profile.html', username=session['username'],user=user)
+        return render_template('profile.html', username=session['username'], user=user, success_message=success_message)
     else:
         error_message = 'You are not logged in.'
         return redirect(url_for('login', error_message=error_message))
 
 ##### create_profile #####
+
+
 @app.route('/create_profile', methods=['GET', 'POST'])
 def create_profile():
-    if request.method=='GET':
+    if request.method == 'GET':
         return render_template('create_profile.html')
     else:
         description = request.form['description']
@@ -145,14 +159,14 @@ def create_profile():
         work = request.form['work']
         partner = request.form['partner']
         username = session.get('username')
-        updated_user = db_session.query(User).filter(User.username == username).first()
+        updated_user = db_session.query(User).filter(
+            User.username == username).first()
         updated_user.description = description
         updated_user.age = age
         updated_user.work = work
         updated_user.partner = partner
         db_session.commit()
-        return redirect(url_for('profile',user=updated_user))
-
+        return redirect(url_for('profile', user=updated_user))
 
 
 ##### post #####
@@ -163,12 +177,14 @@ def post():
         new_content = Post(content=content)
         db_session.add(new_content)
         db_session.commit()
-        success_message = 'Posted Sccessfully'
-        return redirect(url_for('timeline', success_message=success_message))
+        flash('Posted Sccessfully', 'success')
+        return redirect(url_for('timeline'))
     else:
         return render_template('post.html')
 
 ##### timeline #####
+
+
 @app.route('/timeline')
 def timeline():
     success_message = request.args.get('success_message')
@@ -178,7 +194,6 @@ def timeline():
     for post in posts:
         print(post.content)
     return render_template('timeline.html', success_message=success_message, posts=posts)
-    
 
 
 ##### ログアウト #####

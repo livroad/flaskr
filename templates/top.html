@@ -3,14 +3,17 @@
 
 
 <div class="container">
-    <h1>{{ user }} Welcome to My SNS</h1>
+    <h1 class="page_title">{{ user }} Welcome to My SNS</h1>
     <p>This is a sample SNS.</p>
     <p>This is a top page</p>
 
-    {% if success_message %}
-        <p>{{ success_message }}</p>
-    {% endif %}
-
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p class="success_message">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
 
     {% if user is not defined %}
