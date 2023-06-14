@@ -18,7 +18,6 @@ Base = declarative_base()
 Session = sessionmaker(engine)
 db_session = Session()
 migrate = Migrate(app, db)
-
 inspector = inspect(engine)
 
 # テーブル名を指定してスキーマ情報を取得
@@ -73,14 +72,8 @@ class Post(Base):
     user = relationship('User')
 
 
-
 Base.metadata.create_all(engine)
 
-
-
-users = db_session.query(User).all()
-for i in users:
-    print(i.username)
 
 
 ##### top #####
