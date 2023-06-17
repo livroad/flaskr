@@ -8,7 +8,6 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.orm import relationship
 from flask_migrate import Migrate
 
-
 app = Flask(__name__)
 app.secret_key = 'secr;alksjfneet_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -20,13 +19,16 @@ db_session = Session()
 migrate = Migrate(app, db)
 inspector = inspect(engine)
 
+
 # テーブル名を指定してスキーマ情報を取得
 # table_name = 'posts'
 # table_schema = inspector.get_columns(table_name)
 # print(table_schema)
+
+
+
 ##### base.htmlで使用する変数や関数はグローバルとして定義する#####
 # 「is_acrive」関数をグローバルに定義
-
 
 @app.context_processor
 def inject_is_active():
