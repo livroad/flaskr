@@ -1,10 +1,8 @@
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, session, current_app, flash
-import db
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import authentication as auth
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, inspect, DateTime, func, ForeignKey
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
 from sqlalchemy.orm import relationship
 from flask_migrate import Migrate
 
@@ -12,19 +10,7 @@ app = Flask(__name__)
 app.secret_key = 'secr;alksjfneet_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 db = SQLAlchemy(app)
-engine = db.create_engine('sqlite:///database.db')
-Base = declarative_base()
-Session = sessionmaker(engine)
-db_session = Session()
 migrate = Migrate(app, db)
-inspector = inspect(engine)
-
-
-# テーブル名を指定してスキーマ情報を取得
-# table_name = 'posts'
-# table_schema = inspector.get_columns(table_name)
-# print(table_schema)
-
 
 
 ##### base.htmlで使用する変数や関数はグローバルとして定義する#####
@@ -50,9 +36,9 @@ def page_list():
     return dict(page_list=page_list)
 
 
-class User(Base):
+class User(db.Model):
     __tablename__ = 'users'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String)
     email = Column(String)
     password = Column(String)
@@ -62,30 +48,29 @@ class User(Base):
     partner = Column(String)
 
     @classmethod
-    def authenticate_user(cls, session, username, password):
-        user = session.query(cls).filter(cls.username == username).first()
+    def authenticate_user(cls, db_session, username, password):
+        user = db_session.query(cls).filter(cls.username == username).first()
         if user and auth.verify_password(password, user.password):
             return True
         else:
             return False
 
 
-class Post(Base):
+class Post(db.Model):
     __tablename__ = 'posts'
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     content = Column(String)
     created_at = Column(DateTime, default=func.now())
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship('User')
 
-
-Base.metadata.create_all(engine)
-
+with app.app_context():
+    db.create_all()
 
 ##### top #####
 @app.route('/')
 def top():
-    users = db_session.query(User).all()
+    users = db.session.query(User).all()
     if 'username' in session:
         user = session.get('username')
         return render_template('top.html', user=user, users=users)
@@ -104,8 +89,8 @@ def register():
 
         new_user = User(username=username, email=email,
                         password=hashed_password)
-        db_session.add(new_user)
-        db_session.commit()
+        db.session.add(new_user)
+        db.session.commit()
         flash('Success!! Thank you for registration!', 'success')
         return render_template('top.html')
     return render_template('register.html')
@@ -119,7 +104,7 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        if User.authenticate_user(db_session, username, password):
+        if User.authenticate_user(db.session, username, password):
             session['username'] = username
             flash('Logged in Successfully!', 'success')
             return redirect(url_for('profile'))
@@ -142,7 +127,7 @@ def profile():
     if 'username' in session:
         success_message = request.args.get('success_message')
         username = session.get('username')
-        user = db_session.query(User).filter(User.username == username).first()
+        user = db.session.query(User).filter(User.username == username).first()
         return render_template('profile.html', username=session['username'], user=user, success_message=success_message)
     else:
         error_message = 'You are not logged in.'
@@ -161,13 +146,13 @@ def create_profile():
         work = request.form.get('work')
         partner = request.form.get('partner')
         username = session.get('username')
-        updated_user = db_session.query(User).filter(
+        updated_user = db.session.query(User).filter(
             User.username == username).first()
         updated_user.description = description
         updated_user.age = age
         updated_user.work = work
         updated_user.partner = partner
-        db_session.commit()
+        db.session.commit()
         return redirect(url_for('profile', user=updated_user))
 
 
@@ -177,8 +162,8 @@ def post():
     if request.method == 'POST':
         content = request.form.get('content')
         new_content = Post(content=content)
-        db_session.add(new_content)
-        db_session.commit()
+        db.session.add(new_content)
+        db.session.commit()
         flash('Posted Sccessfully', 'success')
         return redirect(url_for('timeline'))
     else:
@@ -188,17 +173,33 @@ def post():
 @app.route('/timeline')
 def timeline():
     success_message = request.args.get('success_message')
-    posts = db_session.query(Post).all()
+    posts = db.session.query(Post).all()
     return render_template('timeline.html', success_message=success_message, posts=posts)
 
 
-@app.route('/edit', methods=['GET', 'POST'])
-def edit():
+
+@app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
+def edit(post_id):
     if request.method == 'GET':
-        return render_template('edit.html')
+        post = Post.query.get_or_404(post_id)
+        return render_template('edit.html', post_content=post.content)
     else:
-        
+        # 更新処理
+        post = Post.query.get_or_404(post_id)
+        content = request.form.get('content')
+        post.content = content
+        db.session.commit()
+        flash('Post Updated Successfully', 'success')
         return redirect(url_for('timeline'))
+
+
+@app.route('/delete/<int:post_id>')
+def delete(post_id):
+    post = Post.query.get_or_404(post_id)
+    db.session.delete(post)
+    db.session.commit()
+    flash('Post Deleted Successfully', 'success')
+    return redirect(url_for('timeline'))
 
 
 
