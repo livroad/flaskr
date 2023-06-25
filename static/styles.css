@@ -55,6 +55,24 @@ form{
 	font-size: 24px;	
 }
 
+.post-date{
+	font-size: 12px;
+}
+
+.post-content{
+	font-size: 20px;
+}
+
 .space{
-	height: 30px;
+	margin-bottom: 20px;
+}
+
+.space a{
+	color: burlywood;
+	font-size: 12px;
+	padding-right: 10px;
+}
+
+.new-post{
+	margin: 30px 0;
 }

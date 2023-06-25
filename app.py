@@ -97,9 +97,9 @@ def top():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
         hashed_password = auth.hash_password(password)
 
         new_user = User(username=username, email=email,
@@ -116,8 +116,8 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
 
         if User.authenticate_user(db_session, username, password):
             session['username'] = username
@@ -156,10 +156,10 @@ def create_profile():
     if request.method == 'GET':
         return render_template('create_profile.html')
     else:
-        description = request.form['description']
-        age = request.form['age']
-        work = request.form['work']
-        partner = request.form['partner']
+        description = request.form.get('description')
+        age = request.form.get('age')
+        work = request.form.get('work')
+        partner = request.form.get('partner')
         username = session.get('username')
         updated_user = db_session.query(User).filter(
             User.username == username).first()
@@ -175,7 +175,7 @@ def create_profile():
 @app.route('/post', methods=['GET', 'POST'])
 def post():
     if request.method == 'POST':
-        content = request.form['content']
+        content = request.form.get('content')
         new_content = Post(content=content)
         db_session.add(new_content)
         db_session.commit()
@@ -185,17 +185,22 @@ def post():
         return render_template('post.html')
 
 ##### timeline #####
-
-
 @app.route('/timeline')
 def timeline():
     success_message = request.args.get('success_message')
     posts = db_session.query(Post).all()
-    print(posts)
-    # print(posts.content, posts.user_id)
-    for post in posts:
-        print(post.content)
     return render_template('timeline.html', success_message=success_message, posts=posts)
+
+
+@app.route('/edit', methods=['GET', 'POST'])
+def edit():
+    if request.method == 'GET':
+        return render_template('edit.html')
+    else:
+        
+        return redirect(url_for('timeline'))
+
+
 
 
 ##### ログアウト #####
