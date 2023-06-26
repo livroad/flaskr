@@ -2,7 +2,7 @@ import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import authentication as auth
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, inspect, func
 from sqlalchemy.orm import relationship
 from flask_migrate import Migrate
 
@@ -64,8 +64,13 @@ class Post(db.Model):
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship('User')
 
-with app.app_context():
-    db.create_all()
+
+# with app.app_context():
+#     inspector = inspect(db.engine)
+#     columns = inspector.get_columns('posts')
+#     for column in columns:
+#         print(column['name'], column['type'])
+
 
 ##### top #####
 @app.route('/')
@@ -86,18 +91,16 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         hashed_password = auth.hash_password(password)
-
         new_user = User(username=username, email=email,
                         password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         flash('Success!! Thank you for registration!', 'success')
-        return render_template('top.html')
-    return render_template('register.html')
+        return redirect(url_for('login'))
+    else:
+        return render_template('register.html')
 
 ##### login #####
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -115,45 +118,53 @@ def login():
         error_message = request.args.get('error_message')
         if error_message:
             flash(error_message, 'error')
-            return render_template('login.html')
-        else:
-            return render_template('login.html')
+        return render_template('login.html')
+
+
 
 ##### profile #####
-
-
 @app.route('/profile')
 def profile():
     if 'username' in session:
         success_message = request.args.get('success_message')
         username = session.get('username')
         user = db.session.query(User).filter(User.username == username).first()
+        if user is None:
+            flash('User not found', 'error')
+            return redirect(url_for('login'))
         return render_template('profile.html', username=session['username'], user=user, success_message=success_message)
     else:
-        error_message = 'You are not logged in.'
-        return redirect(url_for('login', error_message=error_message))
+        flash('Please login')
+        return redirect(url_for('login'))
+
 
 ##### create_profile #####
-
-
 @app.route('/create_profile', methods=['GET', 'POST'])
 def create_profile():
-    if request.method == 'GET':
-        return render_template('create_profile.html')
+    if 'username' in session:
+        if request.method == 'GET':
+            return render_template('create_profile.html')
+        else:
+            description = request.form.get('description')
+            age = request.form.get('age')
+            work = request.form.get('work')
+            partner = request.form.get('partner')
+            username = session.get('username')
+            updated_user = db.session.query(User).filter(User.username == username).first()
+            if updated_user is None:
+                flash('User not found', 'error')
+                return redirect(url_for('login'))
+            updated_user.description = description
+            updated_user.age = age
+            updated_user.work = work
+            updated_user.partner = partner
+            db.session.commit()
+            flash('Profile updated successfully', 'success')
+            return redirect(url_for('profile'))
     else:
-        description = request.form.get('description')
-        age = request.form.get('age')
-        work = request.form.get('work')
-        partner = request.form.get('partner')
-        username = session.get('username')
-        updated_user = db.session.query(User).filter(
-            User.username == username).first()
-        updated_user.description = description
-        updated_user.age = age
-        updated_user.work = work
-        updated_user.partner = partner
-        db.session.commit()
-        return redirect(url_for('profile', user=updated_user))
+        flash('Please login')
+        return redirect(url_for('login'))
+
 
 
 ##### post #####
@@ -161,8 +172,9 @@ def create_profile():
 def post():
     if request.method == 'POST':
         content = request.form.get('content')
-        new_content = Post(content=content)
-        db.session.add(new_content)
+        user = db.session.query(User).filter(User.username == session.get('username')).first()
+        post = Post(content=content, user_id=user.id)
+        db.session.add(post)
         db.session.commit()
         flash('Posted Sccessfully', 'success')
         return redirect(url_for('timeline'))
@@ -177,14 +189,13 @@ def timeline():
     return render_template('timeline.html', success_message=success_message, posts=posts)
 
 
-
+##### edit #####
 @app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
 def edit(post_id):
     if request.method == 'GET':
         post = Post.query.get_or_404(post_id)
         return render_template('edit.html', post_content=post.content)
     else:
-        # 更新処理
         post = Post.query.get_or_404(post_id)
         content = request.form.get('content')
         post.content = content
@@ -193,6 +204,7 @@ def edit(post_id):
         return redirect(url_for('timeline'))
 
 
+##### delete #####
 @app.route('/delete/<int:post_id>')
 def delete(post_id):
     post = Post.query.get_or_404(post_id)

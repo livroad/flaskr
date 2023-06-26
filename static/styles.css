@@ -18,6 +18,10 @@ body {
 	}
 }
 
+.container{
+	min-height: 800px;
+}
+
 .page_title{
 	font-weight: bold;
 }
@@ -64,7 +68,7 @@ form{
 }
 
 .space{
-	margin-bottom: 20px;
+	margin-bottom: 40px;
 }
 
 .space a{
