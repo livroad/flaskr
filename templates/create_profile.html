@@ -6,31 +6,19 @@
 
     <form method="POST">
         <div class="input-field">
-            <input type="text" id="description" name="description" class="validate">
+            <input type="text" id="description" name="description" class="validate" value="{{ user.description}}">
             <label for="description">Description:</label>
             <span class="helper-text" data-error="wrong" data-success="right"></span>
         </div>
         <div class="input-field">
-            <input type="text" id="age" name="age" class="validate">
+            <input type="text" id="age" name="age" class="validate" value="{{ user.age }}">
             <label for="age">Age:</label>
             <span class="helper-text" data-error="wrong" data-success="right"></span>
         </div>
         <div class="input-field">
-            <input type="text" id="work" name="work" class="validate">
+            <input type="text" id="work" name="work" class="validate" value="{{ user.work }}">
             <label for="work">Work:</label>
             <span class="helper-text" data-error="wrong" data-success="right"></span>
-        </div>
-        <script>
-            $(document).ready(function(){
-            $('select').formSelect();
-            });
-        </script>
-        <div class="input-field">
-            <select name="partner" id="partner">
-                <option value="1">No, i'm alone</option>
-                <option value="2">Yes, i have</option>
-            </select>
-            <label for="partner">Do you have partner?</label>
         </div>
         <br>
 

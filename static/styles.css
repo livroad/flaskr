@@ -59,21 +59,29 @@ form{
 	font-size: 24px;	
 }
 
+.posts{
+	height: 100%+200px;
+}
+
 .post-date{
 	font-size: 12px;
 }
 
 .post-content{
-	font-size: 20px;
+	font-size: 24px;
 }
 
-.space{
+.post-user_id{
+	font-size: 12px;
+}
+
+.button{
 	margin-bottom: 40px;
 }
 
-.space a{
+.button a{
 	color: burlywood;
-	font-size: 12px;
+	font-size: 14px;
 	padding-right: 10px;
 }
 

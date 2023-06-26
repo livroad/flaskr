@@ -45,7 +45,6 @@ class User(db.Model):
     description = Column(String)
     age = Column(String)
     work = Column(String)
-    partner = Column(String)
 
     @classmethod
     def authenticate_user(cls, db_session, username, password):
@@ -132,7 +131,7 @@ def profile():
         if user is None:
             flash('User not found', 'error')
             return redirect(url_for('login'))
-        return render_template('profile.html', username=session['username'], user=user, success_message=success_message)
+        return render_template('profile.html', user=user, success_message=success_message)
     else:
         flash('Please login')
         return redirect(url_for('login'))
@@ -143,12 +142,13 @@ def profile():
 def create_profile():
     if 'username' in session:
         if request.method == 'GET':
-            return render_template('create_profile.html')
+            username = session.get('username')
+            user = db.session.query(User).filter(User.username == username).first()
+            return render_template('create_profile.html', user=user)
         else:
             description = request.form.get('description')
             age = request.form.get('age')
             work = request.form.get('work')
-            partner = request.form.get('partner')
             username = session.get('username')
             updated_user = db.session.query(User).filter(User.username == username).first()
             if updated_user is None:
@@ -157,7 +157,6 @@ def create_profile():
             updated_user.description = description
             updated_user.age = age
             updated_user.work = work
-            updated_user.partner = partner
             db.session.commit()
             flash('Profile updated successfully', 'success')
             return redirect(url_for('profile'))
@@ -194,7 +193,7 @@ def timeline():
 def edit(post_id):
     if request.method == 'GET':
         post = Post.query.get_or_404(post_id)
-        return render_template('edit.html', post_content=post.content)
+        return render_template('edit.html', post=post)
     else:
         post = Post.query.get_or_404(post_id)
         content = request.form.get('content')

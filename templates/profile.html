@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="container">
-    <h2 class="page_title">{{ username }}'s profile!</h2>
+    <h2 class="page_title">{{ user.username }}'s profile!</h2>
 
     {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -15,19 +15,9 @@
 
     <a class="create_profile_link" href="{{ url_for('create_profile') }}">create_profile</a>
 
-    {% if user %}
-        <p>Username : {{ user.username }}</p>
-        <p>Description : {{ user.description }}</p>
-        <p>Age : {{ user.age }}</p>
-        <p>Work : {{ user.work }}</p>
-        <p>Partner : {{ user.partner }}</p>
-    {% else %}
-        <p>Username : {{ username }}</p>
-        <p>Description : {{ description }}</p>
-        <p>Age : {{ age }}</p>
-        <p>Work : {{ work }}</p>
-        <p>Partner : {{ partner }}</p>
-    {% endif %}
-
+    <p>Username : {{ user.username }}</p>
+    <p>Description : {{ user.description }}</p>
+    <p>Age : {{ user.age }}</p>
+    <p>Work : {{ user.work }}</p>
 </div>
 {% endblock %}
