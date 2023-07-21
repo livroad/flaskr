@@ -64,12 +64,6 @@ class Post(db.Model):
     user = relationship('User')
 
 
-# with app.app_context():
-#     inspector = inspect(db.engine)
-#     columns = inspector.get_columns('posts')
-#     for column in columns:
-#         print(column['name'], column['type'])
-
 
 ##### top #####
 @app.route('/')

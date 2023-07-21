@@ -1,6 +1,6 @@
 body {
 	width: 100%;
-	height: 100vh;
+	height: 100%;
 	background:linear-gradient(45deg, #838383,#9844b7,#44ea76);/*グラデーションを定義*/
 	background-size: 200% 200%;/*サイズを大きくひきのばす*/
 	animation: bggradient 10s ease infinite;
@@ -49,12 +49,12 @@ form{
 	background: none;
 }
 
-.success_message{
+.success{
 	color: #44ea76;
 	font-size: 24px;
 }
 
-.error_message{
+.error{
 	color: crimson;
 	font-size: 24px;	
 }
