@@ -5,6 +5,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, inspect, func
 from sqlalchemy.orm import relationship
 from flask_migrate import Migrate
+import bcrypt
+
 
 app = Flask(__name__)
 app.secret_key = 'secr;alksjfneet_key'
@@ -15,7 +17,6 @@ migrate = Migrate(app, db)
 
 ##### base.htmlで使用する変数や関数はグローバルとして定義する#####
 # 「is_acrive」関数をグローバルに定義
-
 @app.context_processor
 def inject_is_active():
     def is_active(page):
@@ -23,8 +24,6 @@ def inject_is_active():
     return dict(is_active=is_active)
 
 # 「page_list」変数をグローバルに定義
-
-
 @app.context_processor
 def page_list():
     before_login_list = ['top', 'register', 'login']
@@ -36,6 +35,7 @@ def page_list():
     return dict(page_list=page_list)
 
 
+###### ----User---- ######
 class User(db.Model):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -47,14 +47,28 @@ class User(db.Model):
     work = Column(String)
 
     @classmethod
-    def authenticate_user(cls, db_session, username, password):
-        user = db_session.query(cls).filter(cls.username == username).first()
-        if user and auth.verify_password(password, user.password):
+    def authenticate_user(cls, db_session, user, password):
+        if user and cls.verify_password(password, user.password):
             return True
         else:
             return False
+        
+    @staticmethod
+    def generate_salt():
+        return bcrypt.gensalt().decode('utf-8')
+    
+    @staticmethod
+    def hash_password(password):
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed_password.decode('utf-8')
+    
+    @staticmethod
+    def verify_password(password, registered_password):
+        return bcrypt.checkpw(password.encode('utf-8'), registered_password.encode('utf-8'))
 
 
+##### ----Post---- #####
 class Post(db.Model):
     __tablename__ = 'posts'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -62,6 +76,7 @@ class Post(db.Model):
     created_at = Column(DateTime, default=func.now())
     user_id = Column(Integer, ForeignKey('users.id'))
     user = relationship('User')
+
 
 
 
@@ -83,7 +98,7 @@ def register():
         username = request.form.get('username')
         email = request.form.get('email')
         password = request.form.get('password')
-        hashed_password = auth.hash_password(password)
+        hashed_password = User.hash_password(password)
         new_user = User(username=username, email=email,
                         password=hashed_password)
         db.session.add(new_user)
@@ -99,8 +114,9 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-
-        if User.authenticate_user(db.session, username, password):
+        user = db.session.query(User).filter(User.username == username).first()
+        print(user.username, user.password)
+        if User.authenticate_user(db.session, user, password):
             session['username'] = username
             flash('Logged in Successfully!', 'success')
             return redirect(url_for('profile'))
@@ -119,13 +135,12 @@ def login():
 @app.route('/profile')
 def profile():
     if 'username' in session:
-        success_message = request.args.get('success_message')
         username = session.get('username')
         user = db.session.query(User).filter(User.username == username).first()
         if user is None:
             flash('User not found', 'error')
             return redirect(url_for('login'))
-        return render_template('profile.html', user=user, success_message=success_message)
+        return render_template('profile.html', user=user)
     else:
         flash('Please login')
         return redirect(url_for('login'))
@@ -163,38 +178,50 @@ def create_profile():
 ##### post #####
 @app.route('/post', methods=['GET', 'POST'])
 def post():
-    if request.method == 'POST':
-        content = request.form.get('content')
-        user = db.session.query(User).filter(User.username == session.get('username')).first()
-        post = Post(content=content, user_id=user.id)
-        db.session.add(post)
-        db.session.commit()
-        flash('Posted Sccessfully', 'success')
-        return redirect(url_for('timeline'))
+    if 'username' in session:
+        if request.method == 'POST':
+            content = request.form.get('content')
+            user = db.session.query(User).filter(User.username == session.get('username')).first()
+            post = Post(content=content, user_id=user.id)
+            db.session.add(post)
+            db.session.commit()
+            flash('Posted Sccessfully', 'success')
+            return redirect(url_for('timeline'))
+        else:
+            return render_template('post.html')
     else:
-        return render_template('post.html')
+        flash('Please login')
+        return redirect(url_for('login'))
+
 
 ##### timeline #####
 @app.route('/timeline')
 def timeline():
-    success_message = request.args.get('success_message')
-    posts = db.session.query(Post).all()
-    return render_template('timeline.html', success_message=success_message, posts=posts)
+    if 'username' in session:
+        posts = db.session.query(Post).all()
+        return render_template('timeline.html', posts=posts)
+    else:
+        flash('Please login')
+        return redirect(url_for('login'))
 
 
 ##### edit #####
 @app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
 def edit(post_id):
-    if request.method == 'GET':
-        post = Post.query.get_or_404(post_id)
-        return render_template('edit.html', post=post)
+    if 'username' in session:
+        if request.method == 'GET':
+            post = Post.query.get_or_404(post_id)
+            return render_template('edit.html', post=post)
+        else:
+            post = Post.query.get_or_404(post_id)
+            content = request.form.get('content')
+            post.content = content
+            db.session.commit()
+            flash('Post Updated Successfully', 'success')
+            return redirect(url_for('timeline'))
     else:
-        post = Post.query.get_or_404(post_id)
-        content = request.form.get('content')
-        post.content = content
-        db.session.commit()
-        flash('Post Updated Successfully', 'success')
-        return redirect(url_for('timeline'))
+        flash('Please login')
+        return redirect(url_for('login'))
 
 
 ##### delete #####
@@ -205,8 +232,6 @@ def delete(post_id):
     db.session.commit()
     flash('Post Deleted Successfully', 'success')
     return redirect(url_for('timeline'))
-
-
 
 
 ##### ログアウト #####

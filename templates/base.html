@@ -16,8 +16,8 @@
     <div class="nav-wrapper ">
         <ul class="hide-on-med-and-down">
 
-            {% for i in page_list %}
-            <li class="{{ is_active(i) }}"><a href="{{ url_for(i) }}">{{i}}</a></li>
+            {% for page in page_list %}
+            <li class="{{ is_active(page) }}"><a href="{{ url_for(page) }}">{{page}}</a></li>
             {% endfor %}
         </ul>
     </div>

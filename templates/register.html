@@ -6,17 +6,17 @@
 
     <form method="POST" style="width: 240px;">
         <div class="input-field">
-            <input type="text" id="username" name="username" class="validate">
+            <input type="text" id="username" name="username" class="validate" required>
             <label for="username" style="color: #ffffff;">ユーザー名:</label>
             <span class="helper-text" data-error="wrong" data-success="right"></span>
         </div>
         <div class="input-field">
-            <input type="email" id="email" name="email" class="validate">
+            <input type="email" id="email" name="email" class="validate" required>
             <label for="email">メールアドレス:</label>
             <span class="helper-text" data-error="wrong" data-success="right"></span>
         </div>
         <div class="input-field">
-            <input type="password" id="password" name="password" class="validate">
+            <input type="password" id="password" name="password" class="validate" minlength="8" required>
             <label for="password">パスワード:</label>
             <span class="helper-text" data-error="wrong" data-success="right"></span>
 
