@@ -1,16 +1,17 @@
 import sqlite3
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-import authentication as auth
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, inspect, func
 from sqlalchemy.orm import relationship
 from flask_migrate import Migrate
 import bcrypt
-
+import datetime
 
 app = Flask(__name__)
 app.secret_key = 'secr;alksjfneet_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+# app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(minutes=5)
+app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(seconds=5)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -33,6 +34,7 @@ def page_list():
     else:
         page_list = before_login_list
     return dict(page_list=page_list)
+
 
 
 ###### ----User---- ######
@@ -78,7 +80,18 @@ class Post(db.Model):
     user = relationship('User')
 
 
+##### /check_session #####
+@app.route('/check_session')
+def check_session():
+    if 'username' not in session:
+        return '', 401
+    return '', 200
 
+
+@app.route('/is_logged_in')
+def is_logged_in():
+    print(jsonify(is_logged_in=('username' in session)))
+    return jsonify(is_logged_in=('username' in session))
 
 ##### top #####
 @app.route('/')
@@ -115,7 +128,6 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         user = db.session.query(User).filter(User.username == username).first()
-        print(user.username, user.password)
         if User.authenticate_user(db.session, user, password):
             session['username'] = username
             flash('Logged in Successfully!', 'success')
@@ -142,7 +154,7 @@ def profile():
             return redirect(url_for('login'))
         return render_template('profile.html', user=user)
     else:
-        flash('Please login')
+        flash('Please login', 'error')
         return redirect(url_for('login'))
 
 
@@ -170,7 +182,7 @@ def create_profile():
             flash('Profile updated successfully', 'success')
             return redirect(url_for('profile'))
     else:
-        flash('Please login')
+        flash('Please login', 'error')
         return redirect(url_for('login'))
 
 
@@ -190,7 +202,7 @@ def post():
         else:
             return render_template('post.html')
     else:
-        flash('Please login')
+        flash('Please login', 'error')
         return redirect(url_for('login'))
 
 
@@ -201,7 +213,7 @@ def timeline():
         posts = db.session.query(Post).all()
         return render_template('timeline.html', posts=posts)
     else:
-        flash('Please login')
+        flash('Please login', 'error')
         return redirect(url_for('login'))
 
 
@@ -220,7 +232,7 @@ def edit(post_id):
             flash('Post Updated Successfully', 'success')
             return redirect(url_for('timeline'))
     else:
-        flash('Please login')
+        flash('Please login', 'error')
         return redirect(url_for('login'))
 
 
@@ -237,7 +249,6 @@ def delete(post_id):
 ##### ログアウト #####
 @app.route('/logout')
 def logout():
-    # ログアウト処理: セッションからユーザー名を削除
     session.pop('username', None)
     return redirect('/')
 
